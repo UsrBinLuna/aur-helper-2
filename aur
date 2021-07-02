@@ -1,0 +1,58 @@
+#!/bin/bash
+
+case $1 in 
+  i|install)
+    git clone https://aur.archlinux.org/$2.git ~/.cache/$2
+    cd ~/.cache/$2
+    echo "Would you like to inspect the PKGBUILD? (y/N)"
+    read -p "> " pkgb
+
+    if [[ $pkgb = "y" || $pkgb = "Y" ]]; then
+      less PKGBUILD
+      exit
+    elif [[ $pkgb = "n" || $pkgb = "N" ]]; then
+      makepkg -si
+    else
+      makepkg -si
+    fi
+    ;;
+
+  h|help)
+    echo " "
+    echo "i|install - install a package"
+    echo "u|uninstall - remove a package"
+    ;;
+
+  u|uninstall)
+    read -sp "Enter your password (will not be shown): " pswd
+    echo "Remove package $2? (Y/n)"
+    read -p "> " rmpk
+    if [[ $rmpk = "y" || $rmpk = "Y" ]]; then
+      echo $pswd | sudo -S pacman -R $2 --noconfirm
+    elif [[ $rmpk = "n" || $rmpk = "N" ]]; then
+      echo "Package removal cancelled"
+    fi
+    ;;
+  U|update)
+    echo "Updating package list"
+    cd ~/.cache
+    rm -fv packages
+    wget https://aur.archlinux.org/packages.gz
+    mv -v packages.gz packages
+    ;;
+  s|search)
+    echo "Searching for package $2..."
+    cd ~/.cache
+    zcat packages | grep $2
+    ;;
+
+  cc|clearcache)
+    cd ~/.cache/
+    echo "Cleaning ~/.cache/"
+    rm -rf *
+    echo "Redownloading packages.gz"
+    wget https://aur.archlinux.org/packages.gz
+    mv -v packages.gz packages
+    ;;
+
+esac
